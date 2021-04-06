@@ -48,11 +48,12 @@ class SIC:
             size = size//2
         self.addIntToLocctr(size)
 
-    def writeLiterals(self):
-        for literal in self.literals:
+    def writeLiterals(self, eof = False):
+        for i, literal in enumerate(self.literals):
             self.intermediate.write('{:<8}'.format(self.locctr[2:]).upper())
             self.intermediate.write('{:<11}'.format('*') + literal + '\n')
-            self.addOperandSize(literal)
+            if not eof and i != len(self.literals)-1:
+                self.addOperandSize(literal)
         self.literals = []
 
     def writeLine(self, address, line):
@@ -77,6 +78,8 @@ class SIC:
         lines = self.asmFile.readlines()
 
         for i, line in enumerate(lines):
+            if (i == len(lines) - 1) and not len(self.literals):
+                self.programSize = hex((int(self.locctr, 16)) - int(self.startAddress, 16))
             try:
                 # Discard comments
                 if line[0] == '.':
@@ -119,7 +122,7 @@ class SIC:
                     self.writeLiterals()
                 elif opcode == "END":
                     self.addIntToLocctr(3)
-                    return
+                    break
                 else:
                     try:
                         opcode = [op for op in self.optab if op['name'] == opcode][0]
@@ -130,19 +133,20 @@ class SIC:
                 exit('ERROR: something went wrong on line ' + str(i+1))
 
         if len(self.literals):
-            self.writeLiterals()
-        self.programSize = hex((int(self.locctr, 16)) - int(self.startAddress, 16))
+            self.writeLiterals(True)
+            self.programSize = hex((int(self.locctr, 16)) - int(self.startAddress, 16))
 
     def printInfo(self):
         print('Program Name:', self.programName)
-        print('Starting Address:', self.startAddress)
-        print('Program Size:', self.programSize)
+        print('Starting Address:', self.startAddress[2:].upper())
+        print('Program Size:', self.programSize[2:].upper())
 
     def printSYMTAB(self):
         print('Symbol Table:')
         for symbol in self.symtab:
             print('{:<10}'.format(symbol['name']) + ' ' + symbol['loc'])
 
-sic = SIC('test_file-2.asm')
+sic = SIC('test_file.asm')
 sic.implementPass1('intermediate.mdt')
 sic.printSYMTAB()
+sic.printInfo()

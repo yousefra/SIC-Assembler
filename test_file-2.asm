@@ -1,21 +1,22 @@
-COPY       START     1000              COPY FILE FROM INPUT TO OUTNPUT
+.COPY      START     1000              COPY FILE FROM INPUT TO OUTNPUT
 FIRST      STL       RETADR            SAVE RETURN ADDRESS
 CLOOP      JSUB	     RDREC             READ INPUT RECORD
            LDA 	     LENGTH            TEST FOR EOF (LENGTH = 0)
            COMP	     ZERO
-           JEQ 	     ENDFIL            EXIT IF EOF FOUND
+           EQ        ENDFIL            EXIT IF EOF FOUND
            JSUB	     WRREC             WRITE OUTPUT RECORD
            J         CLOOP             LOOP
 ENDFIL     LDA       EOF               INSERT END OF FILE MARKER
            STA       BUFFER
            LDA       THREE             SET LENGTH = 3
            STA       LENGTH
-           JSUB	     WRREC             WRITE EOF
+           JSB	     WRREC             WRITE EOF
            LDL       RETADR            GET RETURN ADDRESS
            RSUB	                       RETURN TO CALLER
 EOF        BYTE	     =C`EOF`
 THREE      WORD	     3
 ZERO       WORD	     0
+ZERO       WORD	     6
 RETADR     RESW	     1
 LENGTH     RESW	     1                 LENGTH OF RECORD
            LTORG
