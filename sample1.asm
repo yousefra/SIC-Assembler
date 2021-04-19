@@ -1,23 +1,23 @@
-.COPY      START     1000              COPY FILE FROM INPUT TO OUTNPUT
+COPY       START     1000              COPY FILE FROM INPUT TO OUTNPUT
 FIRST      STL       RETADR            SAVE RETURN ADDRESS
-CLOOP      JSUB	     RDREC             READ INPUT RECORD
-           LDA 	     LENGTH            TEST FOR EOF (LENGTH = 0)
+CLOOP      JSUB      RDREC             READ INPUT RECORD
+           LDA       LENGTH            TEST FOR EOF (LENGTH = 0)
            COMP	     ZERO
-           EQ        ENDFIL            EXIT IF EOF FOUND
+           JEQ       ENDFIL            EXIT IF EOF FOUND
            JSUB	     WRREC             WRITE OUTPUT RECORD
            J         CLOOP             LOOP
 ENDFIL     LDA       EOF               INSERT END OF FILE MARKER
            STA       BUFFER
            LDA       THREE             SET LENGTH = 3
            STA       LENGTH
-           JSB	     WRREC             WRITE EOF
+           JSUB	     WRREC             WRITE EOF
            LDL       RETADR            GET RETURN ADDRESS
            RSUB	                       RETURN TO CALLER
-EOF        BYTE	     =C`EOF`
+EOF        BYTE	     C`EOF`
 THREE      WORD	     3
+THREE      WORD	     1
 ZERO       WORD	     0
-ZERO       WORD	     6
-RETADR     RESW	     1
+RETadR     RESW	     1
 LENGTH     RESW	     1                 LENGTH OF RECORD
            LTORG
 BUFFER     RESB	     4096              4096-BYTE BUFFER AREA
@@ -31,12 +31,12 @@ RLOOP      TD        INPUT             TEST INPUT DEVICE
            RD        INPUT             READ CHARACTER INTO REGISTER A
            COMP      ZERO              TEST FOR END OF RECORD (X'00')
            JEQ       EXIT              EXIT LOOP IF EOR
-           STCH      BUFFER, X         STORE CHARACTER IN BUFFER
+           STCH      BUFFER,X          STORE CHARACTER IN BUFFER
            TIX       MAXLEN            LOOP UNLESS MAX LENGTH
            JLT       RLOOP             HAS BEEN REACHED
 EXIT       STX       LENGTH            SAVE RECORD LENGTH
            RSUB                        RETURN TO CALLER
-INPUT      BYTE      =X`F1`             CODE FOR INPUT DEVICE
+INPUT      BYTE      X`F1`             CODE FOR INPUT DEVICE
 MAXLEN     WORD      4096
 .
 .          SUBROUTINE TO WRITE RECORD FROM BUFFER
@@ -44,10 +44,10 @@ MAXLEN     WORD      4096
 WRREC      LDX       ZERO              CLEAR LOOP COUNTER
 WLOOP      TD        OUTPUT            TEST OUTPUT DEVICE
            JEQ       WLOOP             LOOP UNTIL READY
-           LDCH      BUFFER, X         GET CHARACTER FROM BUFFER
+           LDCH      BUFFER,X          GET CHARACTER FROM BUFFER
            WD        OUTPUT            WRITE CHARACTER
            TIX       LENGTH            LOOP UNTIL ALL CHARACTERS
            JLT       WLOOP             HAVE BEEN WRITTEN
            RSUB                        RETURN TO CALLER
-OUTPUT     BYTE      =X`05`             CODE FOR OUTPUT DEVICE
+OUTPUT     BYTE      X`05`             CODE FOR OUTPUT DEVICE
            END       FIRST
